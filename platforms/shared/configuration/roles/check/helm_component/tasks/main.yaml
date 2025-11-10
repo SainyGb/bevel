@@ -98,7 +98,7 @@
   when: component_type == "Pod"
   
 # Print a warning message if job is still running/pending after retries but not failed
-- name: Status update for job {{ component_name }}
+- name: "Status update for job {{ component_name }}"
   debug:
     msg: "Job {{ component_name }} in namespace {{ namespace }} is still running or pending. Consider increasing retry_count or checking for issues in the job configuration."
   when:
