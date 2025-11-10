@@ -31,33 +31,33 @@
 
 # Check if a component is created with retry
 - name: Wait for {{ component_type }} {{ component_name }}
-  block:
-    - name: Wait for {{ component_type }} {{ component_name }} to be created
-      k8s_info:
-        kind: "{{ component_type }}"
-        name: "{{ component_name }}"
-        kubeconfig: "{{ kubernetes.config_file }}"
-        context: "{{ kubernetes.context }}"
-      register: component_data
-      retries: "{{ network.env.retry_count }}"
-      delay: 35
-      until: component_data.resources|length > 0
+  k8s_info:
+    kind: "{{ component_type }}"
+    name: "{{ component_name }}"
+    kubeconfig: "{{ kubernetes.config_file }}"
+    context: "{{ kubernetes.context }}"
+  register: component_data
+  retries: "{{ network.env.retry_count }}"
+  delay: 35
+  until: component_data.resources|length > 0
+  when: 
+    - component_type == "Namespace" or component_type == "ClusterRoleBinding" or component_type == "StorageClass"
+    - type is undefined or type == "retry"
 
-  rescue:
-    - name: Debug information for {{ component_type }} {{ component_name }} failure
-      debug:
-        msg: >-
-          FAILED to find {{ component_type }} {{ component_name }} after retries.
-          Potential causes:
-          1. Kubernetes cluster connectivity issues
-          2. Insufficient permissions
-          3. Resource conflicts or naming conflicts
-          4. Invalid configuration in network.yaml
-          Check the Kubernetes events and logs for more details.
-
+# Output debug message if component creation fails after retries
+- name: Debug information for {{ component_type }} {{ component_name }} failure
+  debug:
+    msg: >-
+      Potential causes for {{ component_type }} {{ component_name }} creation failure:
+      1. Kubernetes cluster connectivity issues
+      2. Insufficient permissions
+      3. Resource conflicts or naming conflicts
+      4. Invalid configuration in network.yaml
+      Check the Kubernetes events and logs for more details.
   when:
     - component_type == "Namespace" or component_type == "ClusterRoleBinding" or component_type == "StorageClass"
     - type is undefined or type == "retry"
+    - component_data.failed is defined and component_data.failed
 
 # Task to check if ServiceAccount is created
 # This task will try for a maximum number of iterations defined in env.retry_count of network.yaml with an interval of
@@ -80,30 +80,30 @@
 
 # Task to check if ServiceAccount is created
 # This task will try for a maximum number of iterations defined in env.retry_count of network.yaml with an interval of
+# 35 seconds between each try
 - name: Wait for {{ component_type }} {{ component_name }}
-  block:
-    - name: Wait for {{ component_type }} {{ component_name }} to be created
-      k8s_info:
-        kind: "{{ component_type }}"
-        name: "{{ component_name }}"
-        namespace: "{{ component_ns }}"
-        kubeconfig: "{{ kubernetes.config_file }}"
-        context: "{{ kubernetes.context }}"
-      register: component_data
-      retries: "{{ network.env.retry_count }}"
-      delay: 35
-      until: component_data.resources|length > 0
+  k8s_info:
+    kind: "{{ component_type }}"
+    name: "{{ component_name }}"
+    namespace: "{{ component_ns }}"
+    kubeconfig: "{{ kubernetes.config_file }}"
+    context: "{{ kubernetes.context }}"
+  register: component_data
+  retries: "{{ network.env.retry_count }}"
+  delay: 35
+  until: component_data.resources|length > 0
+  when: (component_type == "ServiceAccount" and (type is undefined or type == 'retry'))
 
-  rescue:
-    - name: Debug information for {{ component_type }} {{ component_name }} failure
-      debug:
-        msg: >-
-          FAILED to find {{ component_type }} {{ component_name }} in namespace {{ component_ns }} after retries.
-          Potential causes:
-          1. Namespace may not exist or is still being created
-          2. Insufficient permissions in the namespace
-          3. ServiceAccount naming conflicts
-          4. Invalid configuration in network.yaml
-          Check the Kubernetes events and logs for more details.
-
-  when: component_type == "ServiceAccount" and (type is undefined or type == 'retry')
+# Output debug message if ServiceAccount creation fails after retries
+- name: Debug information for {{ component_type }} {{ component_name }} failure
+  debug:
+    msg: >-
+      Potential causes for {{ component_type }} {{ component_name }} in namespace {{ component_ns }} creation failure:
+      1. Namespace may not exist or is still being created
+      2. Insufficient permissions in the namespace
+      3. ServiceAccount naming conflicts
+      4. Invalid configuration in network.yaml
+      Check the Kubernetes events and logs for more details.
+  when:
+    - component_type == "ServiceAccount" and (type is undefined or type == 'retry')
+    - component_data.failed is defined and component_data.failed
