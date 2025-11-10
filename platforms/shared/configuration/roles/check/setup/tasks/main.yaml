@@ -55,33 +55,33 @@
   when: check == "crypto_materials"
 
 # This task waits until certs are stored in vault.
-- name: Wait for certs to be created.
-  shell: |
-    vault kv get -field={{ vault_field }} {{ vault_path }}
-  environment:
-    VAULT_ADDR: "{{ vault.url }}"
-    VAULT_TOKEN: "{{ vault.root_token }}"
-  register: vault_result
-  retries: "{{ network.env.retry_count}}"
-  delay: 30
-  until: vault_result.failed == False
-  when: check == "crypto_materials"
-  register: vault_retry_result
+- name: Wait for certs to be created and handle failure
+  block:
+    - name: Wait for certs to be created
+      shell: |
+        vault kv get -field={{ vault_field }} {{ vault_path }}
+      environment:
+        VAULT_ADDR: "{{ vault.url }}"
+        VAULT_TOKEN: "{{ vault.root_token }}"
+      register: vault_result
+      retries: "{{ network.env.retry_count}}"
+      delay: 30
+      until: vault_result.failed == False
 
-# Output debug message if vault operation fails after retries
-- name: Debug information for vault failure
-  debug:
-    msg: >-
-      Potential causes for Vault operation failure at path {{ vault_path }}:
-      1. Vault server unavailable or network connectivity issues
-      2. Invalid Vault token or expired token
-      3. Path doesn't exist or field doesn't exist at the specified path
-      4. Insufficient permissions to access the Vault path
-      5. Crypto materials may not have been generated yet
-      Verify Vault status with 'vault status' and check that the crypto generation process completed successfully.
-  when:
-    - check == "crypto_materials"
-    - vault_retry_result.failed is defined and vault_retry_result.failed
+  rescue:
+    - name: Debug information for vault failure
+      debug:
+        msg: >-
+          FAILED to retrieve Vault certs from path {{ vault_path }} after retries.
+          Potential causes:
+          1. Vault server unavailable or network connectivity issues
+          2. Invalid Vault token or expired token
+          3. Path doesn't exist or field doesn't exist at the specified path
+          4. Insufficient permissions to access the Vault path
+          5. Crypto materials may not have been generated yet
+          Verify Vault status with 'vault status' and check that the crypto generation process completed successfully.
+
+  when: check == "crypto_materials"
   
 # Log success message when crypto materials are found
 - name: Log successful crypto materials check
