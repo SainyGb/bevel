@@ -22,7 +22,7 @@ spec:
       network:
         version: 2.2.2
       images:
-        fabrictools: ghcr.io/hyperledger/bevel-fabric-tools:[network.version]
+        fabrictools: ghcr.io/hyperledger/bevel-fabric-tools:2.2.2
         alpineutils: ghcr.io/hyperledger/latest
 
     peer:
