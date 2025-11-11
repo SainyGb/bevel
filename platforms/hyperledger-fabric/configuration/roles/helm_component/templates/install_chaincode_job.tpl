@@ -22,7 +22,7 @@ spec:
       network:
         version: {{ network.version }}
       images:
-        fabrictools: {{ docker_url }}/{{ fabric_tools_image }}:{{ network.version }}
+        fabrictools: {{ docker_url }}/{{ fabric_tools_image }}
         alpineutils: {{ docker_url }}/{{ bevel_alpine_version }}
 
     peer:
