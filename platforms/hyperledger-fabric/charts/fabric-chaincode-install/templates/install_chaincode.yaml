@@ -177,15 +177,17 @@ spec:
             echo "Running go mod tidy ..."
             go mod tidy || { echo "go mod tidy failed"; exit 1; }
 
-            echo "Normalizing go.mod for Fabric compatibility..."
-            if grep -qE '^go 1\.21\.0' go.mod; then
-              sed -i 's/^go 1\.21\.0/go 1.21/' go.mod
-            fi
-            # Remove any toolchain directive (unsupported in Go <1.21)
+            echo "Normalizing go.mod..."
+            sed -i 's/^go 1\.21\.0/go 1.21/' go.mod
             sed -i '/^toolchain/d' go.mod
 
-            echo "go.mod after normalization:"
-            grep -E '^(go|toolchain)' go.mod || echo "(no go/toolchain directives found)"
+            # Vendor dependencies so builder wont re-run 'go mod tidy'
+            echo "Vendoring modules..."
+            /usr/local/go/bin/go mod vendor || { echo "go mod vendor failed"; exit 1; }
+            grep -E '^(go|toolchain)' go.mod || echo "No toolchain directive found."
+
+            echo "Go modules vendored successfully."
+            ls vendor | head
 
             # Get dependencies
             mkdir -p $GOPATH/bin && curl https://raw.githubusercontent.com/hyperledger/bevel/main/platforms/hyperledger-fabric/scripts/install.sh | sh
@@ -194,7 +196,7 @@ spec:
               export PATH=$PATH:$GOPATH/bin
               go env -w GO111MODULE=auto
             fi
-            cd $GOPATH/src/github.com/chaincode && dep ensure
+            # cd $GOPATH/src/github.com/chaincode && dep ensure
 
             #chaincode path
             CC_SRC_PATH="github.com/chaincode/${CHAINCODE_NAME}/${CHAINCODE_MAINDIR}"
