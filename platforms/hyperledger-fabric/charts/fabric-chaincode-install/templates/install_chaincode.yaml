@@ -177,17 +177,19 @@ spec:
             echo "Running go mod tidy ..."
             go mod tidy || { echo "go mod tidy failed"; exit 1; }
 
+            # Vendor dependencies so builder wont re-run 'go mod tidy'
+            echo "Vendoring modules..."
+
+            /usr/local/go/bin/go mod vendor || { echo "go mod vendor failed"; exit 1; }
+            
+            echo "Go modules vendored successfully."
+            ls vendor | head
+
             echo "Normalizing go.mod..."
             sed -i 's/^go 1\.21\.0/go 1.21/' go.mod
             sed -i '/^toolchain/d' go.mod
 
-            # Vendor dependencies so builder wont re-run 'go mod tidy'
-            echo "Vendoring modules..."
-            /usr/local/go/bin/go mod vendor || { echo "go mod vendor failed"; exit 1; }
             grep -E '^(go|toolchain)' go.mod || echo "No toolchain directive found."
-
-            echo "Go modules vendored successfully."
-            ls vendor | head
 
             # Get dependencies
             mkdir -p $GOPATH/bin && curl https://raw.githubusercontent.com/hyperledger/bevel/main/platforms/hyperledger-fabric/scripts/install.sh | sh
