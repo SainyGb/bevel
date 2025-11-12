@@ -177,6 +177,16 @@ spec:
             echo "Running go mod tidy ..."
             go mod tidy || { echo "go mod tidy failed"; exit 1; }
 
+            echo "Normalizing go.mod for Fabric compatibility..."
+            if grep -qE '^go 1\.21\.0' go.mod; then
+              sed -i 's/^go 1\.21\.0/go 1.21/' go.mod
+            fi
+            # Remove any toolchain directive (unsupported in Go <1.21)
+            sed -i '/^toolchain/d' go.mod
+
+            echo "go.mod after normalization:"
+            grep -E '^(go|toolchain)' go.mod || echo "(no go/toolchain directives found)"
+
             # Get dependencies
             mkdir -p $GOPATH/bin && curl https://raw.githubusercontent.com/hyperledger/bevel/main/platforms/hyperledger-fabric/scripts/install.sh | sh
             if [ $version2_5 = 1 ]
