@@ -270,7 +270,16 @@ spec:
             fi
             ## Installing Chaincode
             peer lifecycle chaincode install ${CHAINCODE_NAME}.tar.gz
+
+            echo "======================================"
+            echo "Current Go binary location: $(which go)"
+            echo "Go environment:"
+            go env | grep "GO"
+            echo "Go version:"
+            go version
+            echo "======================================"
             echo "Chaincode installed for Fabric v.2.X"
+            
             ## Check if chaincode got installed 
             INSTALLED=$(peer lifecycle chaincode queryinstalled -O json | jq '.installed_chaincodes?' | \
               jq --arg CCLABEL "${CHAINCODE_NAME}_${CHAINCODE_VERSION}" '.[]? | select(.label==$CCLABEL)')
