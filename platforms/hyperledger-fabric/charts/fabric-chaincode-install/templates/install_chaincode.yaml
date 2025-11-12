@@ -162,6 +162,12 @@ spec:
           echo $GOPATH
           if [ ${CC_RUNTIME_LANGUAGE} = "golang" ]
           then
+            GO_VERSION_REQUIRED="1.21.10"
+            echo "Installing Go ${GO_VERSION_REQUIRED} ..."
+            curl -L "https://go.dev/dl/go${GO_VERSION_REQUIRED}.linux-amd64.tar.gz" -o /tmp/go.tar.gz
+            rm -rf /usr/local/go && tar -C /usr/local -xzf /tmp/go.tar.gz
+            export PATH=$PATH:/usr/local/go/bin
+            echo "Using Go version: $(go version)"
             ## Copying desired chaincode to a location relative to $GOPATH/src
             mkdir -p $GOPATH/src/github.com/chaincode
             cp -R /tmp/chaincode/{{ $.Values.chaincode.repository.path }}/* $GOPATH/src/github.com/chaincode/
@@ -279,7 +285,7 @@ spec:
             go version
             echo "======================================"
             echo "Chaincode installed for Fabric v.2.X"
-            
+
             ## Check if chaincode got installed 
             INSTALLED=$(peer lifecycle chaincode queryinstalled -O json | jq '.installed_chaincodes?' | \
               jq --arg CCLABEL "${CHAINCODE_NAME}_${CHAINCODE_VERSION}" '.[]? | select(.label==$CCLABEL)')
