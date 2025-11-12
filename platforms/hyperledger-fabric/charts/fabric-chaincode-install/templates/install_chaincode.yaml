@@ -181,7 +181,7 @@ spec:
             echo "Vendoring modules..."
 
             /usr/local/go/bin/go mod vendor || { echo "go mod vendor failed"; exit 1; }
-            
+
             echo "Go modules vendored successfully."
             ls vendor | head
 
@@ -281,6 +281,8 @@ spec:
             if [ $PEER_NAME = "peer0" ];then
               ## packaging chaincode
               echo "Packaging chaincode for the first peer"
+              echo "Disabling Go vendor mode for packaging..."
+              export GOFLAGS=""
               peer lifecycle chaincode package ${CHAINCODE_NAME}.tar.gz --path ${CC_SRC_PATH} --lang ${CC_RUNTIME_LANGUAGE} --label ${CHAINCODE_NAME}_${CHAINCODE_VERSION}
             else
               export CORE_PEER_ADDRESS=${PEER0_ADDRESS}
