@@ -168,9 +168,14 @@ spec:
             rm -rf /usr/local/go && tar -C /usr/local -xzf /tmp/go.tar.gz
             export PATH=$PATH:/usr/local/go/bin
             echo "Using Go version: $(go version)"
+
             ## Copying desired chaincode to a location relative to $GOPATH/src
             mkdir -p $GOPATH/src/github.com/chaincode
             cp -R /tmp/chaincode/{{ $.Values.chaincode.repository.path }}/* $GOPATH/src/github.com/chaincode/
+
+            cd $GOPATH/src/github.com/chaincode
+            echo "Running go mod tidy ..."
+            go mod tidy || { echo "go mod tidy failed"; exit 1; }
 
             # Get dependencies
             mkdir -p $GOPATH/bin && curl https://raw.githubusercontent.com/hyperledger/bevel/main/platforms/hyperledger-fabric/scripts/install.sh | sh
