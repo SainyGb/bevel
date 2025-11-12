@@ -20,9 +20,9 @@ spec:
     metadata:
       namespace: carrier-net
       network:
-        version: 2.5.4
+        version: 2.5.5
       images:
-        fabrictools: ghcr.io/hyperledger/bevel-fabric-tools:2.5.4
+        fabrictools: ghcr.io/hyperledger/bevel-fabric-tools:2.5.5
         alpineutils: ghcr.io/hyperledger/bevel-alpine:latest
 
     peer:
