@@ -33,8 +33,7 @@ spec:
       role: vault-role
       address: http://192.168.49.1:8200
       authpath: localcarrier
-      adminsecretprefix: secretsv2/data/carrier/peerOrganizations/carrier-net/users/admin 
-      orderersecretprefix: secretsv2/data/carrier/peerOrganizations/carrier-net/orderer
+      adminsecretprefix: secretsv2/data/localcarrier/users/admin
       serviceaccountname: vault-auth
       type: hashicorp
       imagesecretname: ""
