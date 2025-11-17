@@ -33,8 +33,7 @@ spec:
       role: vault-role
       address: http://192.168.49.1:8200
       authpath: localmanufacturer
-      adminsecretprefix: secretsv2/data/manufacturer/peerOrganizations/manufacturer-net/users/admin 
-      orderersecretprefix: secretsv2/data/manufacturer/peerOrganizations/manufacturer-net/orderer
+      adminsecretprefix: secretsv2/data/localmanufacturer/users/admin
       serviceaccountname: vault-auth
       type: hashicorp
       imagesecretname: ""
