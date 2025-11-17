@@ -78,6 +78,9 @@ spec:
 
           # Calling a function to retrieve the vault token.
           vaultBevelFunc "init"
+          echo johann prints env
+          env
+          echo 
 
           echo "Getting MSP certificates from Vault."
           vaultBevelFunc "readJson" "${VAULT_PEER_SECRET_PREFIX}-msp"
@@ -105,6 +108,7 @@ spec:
           vault_secret_key={{ $.Values.vault.secretgitprivatekey }}
 
           # Calling a function to retrieve secrets from Vault only if they exist.
+          echo "readJson" "${vault_secret_key}"
           vaultBevelFunc "readJson" "${vault_secret_key}"
           
           VALUE_OF_SECRET=$(echo ${VAULT_SECRET} | jq -r ".[\"git_password\"]")         
@@ -162,34 +166,9 @@ spec:
           echo $GOPATH
           if [ ${CC_RUNTIME_LANGUAGE} = "golang" ]
           then
-            GO_VERSION_REQUIRED="1.21.10"
-            echo "Installing Go ${GO_VERSION_REQUIRED} ..."
-            curl -L "https://go.dev/dl/go${GO_VERSION_REQUIRED}.linux-amd64.tar.gz" -o /tmp/go.tar.gz
-            rm -rf /usr/local/go && tar -C /usr/local -xzf /tmp/go.tar.gz
-            export PATH=$PATH:/usr/local/go/bin
-            echo "Using Go version: $(go version)"
-
             ## Copying desired chaincode to a location relative to $GOPATH/src
             mkdir -p $GOPATH/src/github.com/chaincode
             cp -R /tmp/chaincode/{{ $.Values.chaincode.repository.path }}/* $GOPATH/src/github.com/chaincode/
-
-            cd $GOPATH/src/github.com/chaincode
-            echo "Running go mod tidy ..."
-            go mod tidy || { echo "go mod tidy failed"; exit 1; }
-
-            # Vendor dependencies so builder wont re-run 'go mod tidy'
-            echo "Vendoring modules..."
-
-            /usr/local/go/bin/go mod vendor || { echo "go mod vendor failed"; exit 1; }
-
-            echo "Go modules vendored successfully."
-            ls vendor | head
-
-            echo "Normalizing go.mod..."
-            sed -i 's/^go 1\.21\.0/go 1.21/' go.mod
-            sed -i '/^toolchain/d' go.mod
-
-            grep -E '^(go|toolchain)' go.mod || echo "No toolchain directive found."
 
             # Get dependencies
             mkdir -p $GOPATH/bin && curl https://raw.githubusercontent.com/hyperledger/bevel/main/platforms/hyperledger-fabric/scripts/install.sh | sh
@@ -198,12 +177,15 @@ spec:
               export PATH=$PATH:$GOPATH/bin
               go env -w GO111MODULE=auto
             fi
-            # cd $GOPATH/src/github.com/chaincode && dep ensure
+            cd $GOPATH/src/github.com/chaincode && dep ensure
 
             #chaincode path
-            CC_SRC_PATH="${PWD}"
-            echo "Chaincode source path set to: ${CC_SRC_PATH}"
+            CC_SRC_PATH="github.com/chaincode/${CHAINCODE_NAME}/${CHAINCODE_MAINDIR}"
 
+            if ! [ -d "vendor" ];then
+              GO111MODULE=on go mod vendor
+              CC_SRC_PATH="${PWD}"
+            fi
 
           elif [ ${CC_RUNTIME_LANGUAGE} = "java" ]
           then
@@ -278,8 +260,6 @@ spec:
             if [ $PEER_NAME = "peer0" ];then
               ## packaging chaincode
               echo "Packaging chaincode for the first peer"
-              echo "Disabling Go vendor mode for packaging..."
-              export GOFLAGS=""
               peer lifecycle chaincode package ${CHAINCODE_NAME}.tar.gz --path ${CC_SRC_PATH} --lang ${CC_RUNTIME_LANGUAGE} --label ${CHAINCODE_NAME}_${CHAINCODE_VERSION}
             else
               export CORE_PEER_ADDRESS=${PEER0_ADDRESS}
@@ -294,16 +274,7 @@ spec:
             fi
             ## Installing Chaincode
             peer lifecycle chaincode install ${CHAINCODE_NAME}.tar.gz
-
-            echo "======================================"
-            echo "Current Go binary location: $(which go)"
-            echo "Go environment:"
-            go env | grep "GO"
-            echo "Go version:"
-            go version
-            echo "======================================"
             echo "Chaincode installed for Fabric v.2.X"
-
             ## Check if chaincode got installed 
             INSTALLED=$(peer lifecycle chaincode queryinstalled -O json | jq '.installed_chaincodes?' | \
               jq --arg CCLABEL "${CHAINCODE_NAME}_${CHAINCODE_VERSION}" '.[]? | select(.label==$CCLABEL)')
