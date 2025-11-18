@@ -20,6 +20,8 @@ global:
 image:
   alpineUtils: {{ docker_url }}/bevel-alpine:{{ charts.bevel_alpine_version }}
   fabricTools: {{ docker_url }}/{{ charts.fabric_tools_image }}
+  #alpineUtils: {{ docker_url }}/bevel-alpine:{{ charts.bevel_alpine_version }}
+  #fabricTools: {{ docker_url }}/{{ charts.fabric_tools_image }}
 {% if network.docker.username is defined and network.docker.password is defined  %}
   pullSecret: regcred
 {% else %}
