@@ -1,0 +1,62 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: approve-pmpa-allchannel-peer0chainguard1-1
+  namespace: pmpa-net
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  interval: 1m
+  releaseName: approve-pmpa-allchannel-peer0chainguard1-1
+  chart:
+    spec:
+      interval: 1m
+      sourceRef:
+        kind: GitRepository
+        name: flux-local
+        namespace: flux-local
+      chart: platforms/hyperledger-fabric/charts/fabric-chaincode-approve
+  values:
+    metadata:
+      namespace: pmpa-net
+      images:
+        fabrictools: ghcr.io/hyperledger/bevel-fabric-tools:2.5.4
+        alpineutils: ghcr.io/hyperledger/bevel-alpine:latest
+
+    peer:
+      name: peer0
+      address: peer0.pmpa-net:7051
+      localmspid: pmpaMSP
+      loglevel: debug
+      tlsstatus: true
+    vault:
+      role: vault-role
+      address: http://10.100.221.215:8200
+      authpath: localpmpa
+      adminsecretprefix: secretsv2/data/localpmpa/users/admin
+      serviceaccountname: vault-auth
+      type: hashicorp
+      imagesecretname: ""
+      tls: false
+    orderer:
+      address: orderer-pmpa.mppa-net:7050
+    chaincode:
+      builder: hyperledger/fabric-ccenv:2.5.4
+      name: chainguard
+      version: 1
+      sequence: 1
+      lang: golang
+      commitarguments: ''
+      endorsementpolicies:  ''
+      initrequired: False
+      repository:
+        hostname: "github.com"
+        git_username: "SainyGb"
+        url: github.com/SainyGb/ChainGuard-Backend.git
+        branch: env/api-prod-env
+        path: asset-transfer-abac/chaincode-go/
+      pdc:
+        enabled: false
+        collectionsconfig:  ""
+    channel:
+      name: allchannel
