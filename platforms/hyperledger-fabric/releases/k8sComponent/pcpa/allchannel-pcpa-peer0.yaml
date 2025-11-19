@@ -8,9 +8,9 @@ global:
     type: hashicorp
     network: fabric
     address: http://10.100.221.215:8200
-    authPath: localmppa
+    authPath: localpcpa
     secretEngine: secretsv2
-    secretPrefix: "data/localmppa"
+    secretPrefix: "data/localpcpa"
     role: vault-role
     tls: false
   proxy:
@@ -27,11 +27,11 @@ image:
 peer:
   name: peer0
   type: anchor
-  address: peer0.mppa-net:7051
-  localMspId: mppaMSP
+  address: peer0.pcpa-net:7051
+  localMspId: pcpaMSP
   logLevel: debug
   tlsStatus: true
   channelName: allchannel  
-  ordererAddress: orderer-mppa.mppa-net:7050
+  ordererAddress: orderer-pcpa.pcpa-net:7050
   addPeerValue: false
   addnewOrgValue: false
