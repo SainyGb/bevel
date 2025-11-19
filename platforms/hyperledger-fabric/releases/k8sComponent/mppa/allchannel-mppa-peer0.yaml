@@ -20,11 +20,18 @@ global:
 image:
   fabricTools: ghcr.io/hyperledger/bevel-fabric-tools
   alpineUtils: ghcr.io/hyperledger/bevel-alpine:latest
+  #fabricTools: ghcr.io/hyperledger/bevel-fabric-tools
+  #alpineUtils: ghcr.io/hyperledger/bevel-alpine:latest
   pullSecret: ""
 
-orderers:
-  - name: orderer-mppa
-    adminAddress: orderer-mppa.mppa-net:7055
-
-addOrderer: false
-
+peer:
+  name: peer0
+  type: anchor
+  address: peer0.mppa-net:7051
+  localMspId: mppaMSP
+  logLevel: debug
+  tlsStatus: true
+  channelName: allchannel  
+  ordererAddress: orderer-mppa.mppa-net:7050
+  addPeerValue: false
+  addnewOrgValue: false
